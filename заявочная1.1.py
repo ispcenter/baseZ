@@ -32,17 +32,18 @@ def db_filler():
 
 	# пытаемся открыть базу и дописать заявку
 	try:
-		wbr		= load_workbook(filename='bdz.xlsx', data_only=True)
-		wsr		= wbr.active
-		last_id	= wsr['A'][-1].value
+		wbr = load_workbook(filename='bdz.xlsx', data_only=True)
+		wsr = wbr.active
+		last_id = wsr['A'][-1].value
 
-		date		= ws['A7'].value
-		year		= '20' + date[-3:-1]
-		r 			= 13
-		id 		= last_id +1
-		theme 	= ws['A9'].value
-		maker 	= ws['F{}'.format(17+posCount)].value
-		dopInfo 	= ws['A{}'.format(14+posCount)].value
+		date = ws['A7'].value
+		year = '20' + date[-3:-1]
+		r = 13
+		id = last_id +1
+		theme = 		ws['A9'].value
+		makerD = 	ws['A{}'.format(18+posCount)].value
+		makerFio = 	ws['F{}'.format(18+posCount)].value
+		dopInfo = 	ws['A{}'.format(14+posCount)].value
 		tupleAllZ = wsr['B'][1:]
 		listZ = []
 
@@ -64,8 +65,8 @@ def db_filler():
 			haract 		= ws['E{}'.format(r)].value
 			acception 	= ws['F{}'.format(r)].value
 			costKind 	= ws['G{}'.format(r)].value
-			datestuff = datetime.today().strftime('%Y-%m-%d-%H:%M:%S')
-			str = [id, '{}-{}'.format(z, year), date, theme, posNumber, name, count, document, haract, acception, costKind, maker, dopInfo, datestuff]
+			datestuff 	= datetime.today().strftime('%Y-%m-%d-%H:%M:%S')
+			str = [id, '{}-{}'.format(z, year), date, theme, posNumber, name, count, document, haract, acception, costKind, makerD, makerFio, dopInfo, datestuff]
 			wsr.append(str)
 			for cell in wsr[wsr.max_row]:
 				cell.style = "TabledDB"
@@ -79,14 +80,15 @@ def db_filler():
 		wsr = wbr.active
 		wsr.title = "База заявок"
 
-		head = ['id', '№ заявки', 'Дата', 'Тема', '№ п/п', 'Наименование', 'Кол-во', "Нормативные документы", 'Технические хар-ки', 'Применение', 'Вид затрат', 'Составитель', 'Дополнительные сведения', 'Дата внесения в базу'] 
+		head = ['id', '№ заявки', 'Дата', 'Тема', '№ п/п', 'Наименование', 'Кол-во', "Нормативные документы", 'Технические хар-ки', 'Применение', 'Вид затрат', 'Должность составителя', 'Фамилия составителя', 'Дополнительные сведения', 'Дата внесения в базу'] 
 		z 		= 1
 		r 		= 13
 		id 	= 1
 		date 	= ws['A7'].value
 		year 	= '20' + date[-3:-1]
 		theme = ws['A9'].value
-		maker = ws['F{}'.format(17+posCount)].value
+		makerD = 	ws['A{}'.format(18+posCount)].value
+		makerFio = 	ws['F{}'.format(18+posCount)].value
 		dopInfo 	= ws['A{}'.format(14+posCount)].value
 		wsr.append(head)
 		for cell in wsr[wsr.max_row]:
@@ -101,7 +103,7 @@ def db_filler():
 			acception 	= ws['F{}'.format(r)].value
 			costKind 	= ws['G{}'.format(r)].value
 			datestuff = datetime.today().strftime('%Y-%m-%d-%H:%M:%S')
-			str = [id, '{}-{}'.format(z, year), date, theme, posNumber, name, count, document, haract, acception, costKind, maker, dopInfo, datestuff]
+			str = [id, '{}-{}'.format(z, year), date, theme, posNumber, name, count, document, haract, acception, costKind, makerD, makerFio, dopInfo, datestuff]
 			wsr.append(str)
 			for cell in wsr[wsr.max_row]:
 				cell.style = TabledDB
@@ -110,7 +112,10 @@ def db_filler():
 		print('База успешно создана')
 
 	# сохраняем и закрываем базу
-	wbr.save(r'{}\bdz.xlsx'.format(cwd))
+	try:
+		wbr.save(r'{}\bdz.xlsx'.format(cwd))
+	except PermissionError:
+		print('БД обновить не удалось, ибо к ней нет доступа. Быть может она открыта в экселе? Закройте её и повторите попытку!')
 	wbr.close
 
 def genZajavka():
@@ -153,9 +158,9 @@ def genZajavka():
 	wst.append(['','','','','','',''])
 	wst['E4'].value = '''Утверждаю
 	Генеральный директор
-	АО  НПО «Турботехника»
+	АО «Турбокомплект»
 
-	______________Р.В.Каминский
+	______________А.В.Барбалат
 	«_____»_______________{}г.'''.format(nz[-4:])
 		
 	wst.append(['№ п/п','Наименование (обозначение)','Кол-во','Нормативные документы (ГОСТ, ТУ, ТЗ, чертежи и др.)','Технические хар-ки (параметры)','Применение','Вид затрат'])
@@ -176,21 +181,29 @@ def genZajavka():
 	wst.append(["Дополнительные сведения:"])
 	wst.merge_cells('A{0}:G{0}'.format(13+len(arr)))
 	wst['A{}'.format(13+len(arr))].border = Border(bottom=Side(border_style=None, color='FFFFFF'))
-	wst['A{}'.format(14+len(arr))] = arr[0][12] #dop info
+	wst['A{}'.format(14+len(arr))] = arr[0][13] #dop info
 	wst.merge_cells('A{0}:G{0}'.format(14+len(arr)))
 
 	wst.append(['','','','','','',''])
 	wst.append(['','','','','','',''])
 
-	wst['A{}'.format(17+len(arr))].value = 'Заявку составил'
-	wst['F{}'.format(17+len(arr))] = arr[0][11]
-	wst.merge_cells('F{0}:G{0}'.format(17+len(arr)))
+	wst['A{}'.format(17+len(arr))].value = 'Заявку составил:'
+	wst['A{}'.format(18+len(arr))].value = arr[0][11] 			# должность составителя
+	wst['F{}'.format(18+len(arr))].value = arr[0][12]			# фамилия составителя
+	wst.merge_cells('F{0}:G{0}'.format(18+len(arr)))
 
-	wst.append(['','','','','','',''])
+	wst.append(['Согласовано:','','','','','',''])
+	wst.row_dimensions[19+len(arr)].height = 33
 
-	wst['A{}'.format(19+len(arr))].value = 'Руководитель подразделения'
-	wst['F{}'.format(19+len(arr))].value = 'Зайцев О.Г.'
-	wst.merge_cells('F{0}:G{0}'.format(19+len(arr)))
+	wst['A{}'.format(20+len(arr))].value = 'Руководитель подразделения'
+	wst['F{}'.format(20+len(arr))].value = 'Зайцев О.Г.'
+	wst.merge_cells('F{0}:G{0}'.format(20+len(arr)))
+	wst.row_dimensions[20+len(arr)].height = 20
+
+	wst['A{}'.format(21+len(arr))].value = 'Технический директор'
+	wst['F{}'.format(21+len(arr))].value = 'Каминский Р.В.'
+	wst.merge_cells('F{0}:G{0}'.format(21+len(arr)))
+	wst.row_dimensions[21+len(arr)].height = 25
 
 	wst.merge_cells('A4:D4')
 	wst.merge_cells('A5:D5')
@@ -201,14 +214,14 @@ def genZajavka():
 	wst.merge_cells('A10:D10')
 	wst.merge_cells('E4:G9')
 
-	k = 1.1
-	wst.column_dimensions['A'].width = 4.38 * k
-	wst.column_dimensions['B'].width = 12.88 * k
-	wst.column_dimensions['C'].width = 6.75 * k
-	wst.column_dimensions['D'].width = 16.75 * k
-	wst.column_dimensions['E'].width = 16.75 * k
-	wst.column_dimensions['F'].width = 10.75 * k
-	wst.column_dimensions['G'].width = 5.38 * k
+	k = 1
+	wst.column_dimensions['A'].width = 5 * k
+	wst.column_dimensions['B'].width = 16 * k
+	wst.column_dimensions['C'].width = 8 * k
+	wst.column_dimensions['D'].width = 17 * k
+	wst.column_dimensions['E'].width = 16 * k
+	wst.column_dimensions['F'].width = 13 * k
+	wst.column_dimensions['G'].width = 7 * k
 
 	wst.row_dimensions[9].height = 30
 
@@ -233,8 +246,10 @@ def genZajavka():
 		for cell in row:
 			cell.style = TabledL
 
-	for cell in [ wst['E{}'.format(17+len(arr))], wst['F{}'.format(17+len(arr))], wst['G{}'.format(17+len(arr))], wst['E{}'.format(19+len(arr))], wst['F{}'.format(19+len(arr))], wst['G{}'.format(19+len(arr))]]:
-		cell.style = underscore
+	# стили для текста снизу заявки
+	for row in wst['A{}'.format(17+len(arr)):'G{}'.format(21+len(arr))]:
+		for cell in row:
+			cell.style = alignL
 
 	# сохраняем сгенерированную заявку
 	wbt.save('заявка_№{}.xlsx'.format(nz))
@@ -269,8 +284,14 @@ def styles():
 	global underscore
 	underscore = NamedStyle(name="underscore")
 	underscore.border = Border(bottom=bdr_thin)
-	underscore.alignment = Alignment(vertical = 'center', horizontal = 'right')
+	underscore.alignment = Alignment(vertical = 'bottom', horizontal = 'left')
 	underscore.font = Font(name='Times New Roman', size=12)
+
+	# создадим стиль "alignL"
+	global alignL
+	alignL = NamedStyle(name="alignL")
+	alignL.alignment = Alignment(vertical = 'bottom', horizontal = 'left')
+	alignL.font = Font(name='Times New Roman', size=12)
 
 	# создадим стиль "alignR"
 	global alignR
